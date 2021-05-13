@@ -271,6 +271,7 @@ WARNING_FLAGS = -W -Wextra -Wall -Wsign-compare -Wshadow \
 
 ifndef DISABLE_WARNING_AS_ERROR
 	WARNING_FLAGS += -Werror
+	WARNING_FLAGS += -Wno-error=shadow
 endif
 
 
