@@ -152,12 +152,14 @@ func doStart(server common.Server, cfg *config.Config) (err error) {
 
 	exporter.Init(ModuleName, cfg)
 	s.registerMetrics()
+	// TODO 向Master注册
 	s.register(cfg)
 
 	//parse the smux config
 	if err = s.parseSmuxConfig(cfg); err != nil {
 		return
 	}
+	// TODO 初始化连接池
 	//connection pool must be created before initSpaceManager
 	s.initConnPool()
 
@@ -170,6 +172,7 @@ func doStart(server common.Server, cfg *config.Config) (err error) {
 	}
 
 	// create space manager (disk, partition, etc.)
+	// TODO 启动空间管理器
 	if err = s.startSpaceManager(cfg); err != nil {
 		return
 	}
@@ -191,8 +194,10 @@ func doStart(server common.Server, cfg *config.Config) (err error) {
 		return
 	}
 
+	// TODO 注册DataNode相关的RESTApi
 	go s.registerHandler()
 
+	// TODO 启动节点信息定时同步任务
 	go s.startUpdateNodeInfo()
 
 	return
