@@ -191,6 +191,7 @@ func (m *Server) Start(cfg *config.Config) (err error) {
 		log.LogError(errors.Stack(err))
 		return
 	}
+	// TODO 构建存储权限元数据的RocksDB实例
 	if m.rocksDBStore, err = raftstore.NewRocksDBStore(m.storeDir, LRUCacheSize, WriteBufferSize); err != nil {
 		log.LogErrorf("Start: init RocksDB fail: err(%v)", err)
 		return
@@ -227,6 +228,7 @@ func (m *Server) Start(cfg *config.Config) (err error) {
 	m.authProxy = m.newAuthProxy()
 
 	m.cluster.scheduleTask()
+	// TODO 启动Http服务
 	m.startHTTPService()
 	m.wg.Add(1)
 	return nil
