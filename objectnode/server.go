@@ -195,6 +195,7 @@ func handleStart(s common.Server, cfg *config.Config) (err error) {
 		return errors.New("Invalid Node Type!")
 	}
 	// parse config
+	// TODO 解析配置
 	if err = o.loadConfig(cfg); err != nil {
 		return
 	}
@@ -204,15 +205,18 @@ func handleStart(s common.Server, cfg *config.Config) (err error) {
 	if ci, err = o.mc.AdminAPI().GetClusterInfo(); err != nil {
 		return
 	}
+	// TODO 更新当前ObjectNode所在的集群
 	o.updateRegion(ci.Cluster)
 	log.LogInfof("handleStart: get cluster information: region(%v)", o.region)
 
 	// start rest api
+	// TODO 启动REST API
 	if err = o.startMuxRestAPI(); err != nil {
 		log.LogInfof("handleStart: start rest api fail: err(%v)", err)
 		return
 	}
 
+	// TODO 注册到控制台
 	exporter.Init(cfg.GetString("role"), cfg)
 	exporter.RegistConsul(ci.Cluster, cfg.GetString("role"), cfg)
 
