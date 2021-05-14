@@ -73,6 +73,7 @@ type MetaNode struct {
 //  2. Restore raftStore fsm of each meta node range.
 //  3. Start server and accept connection from the master and clients.
 func (m *MetaNode) Start(cfg *config.Config) (err error) {
+	// TODO doStart才是真正的启动入口
 	return m.control.Start(m, cfg, doStart)
 }
 
@@ -114,25 +115,32 @@ func doStart(s common.Server, cfg *config.Config) (err error) {
 	if !ok {
 		return errors.New("Invalid Node Type!")
 	}
+	// TODO 配置解析
 	if err = m.parseConfig(cfg); err != nil {
 		return
 	}
+	// TODO 将metanode注册为master上的节点
 	if err = m.register(); err != nil {
 		return
 	}
 
+	// TODO 启动分布式协调Server
 	if err = m.startRaftServer(); err != nil {
 		return
 	}
+	// TODO 启动mata管理器
 	if err = m.startMetaManager(); err != nil {
 		return
 	}
+	// TODO 注册MetaNode的RESTApi，这里是重点
 	if err = m.registerAPIHandler(); err != nil {
 		return
 	}
 
+	// TODO 启动节点信息定时拉取协程
 	go m.startUpdateNodeInfo()
 
+	// TODO 创建暴露当前节点的角色为MetaNode的API供外部查看
 	exporter.Init(cfg.GetString("role"), cfg)
 	m.startStat()
 
@@ -143,6 +151,7 @@ func doStart(s common.Server, cfg *config.Config) (err error) {
 		return
 	}
 
+	// TODO 启动MetaNode Server
 	if err = m.startServer(); err != nil {
 		return
 	}
@@ -151,6 +160,7 @@ func doStart(s common.Server, cfg *config.Config) (err error) {
 		return
 	}
 
+	// TODO 注册到控制台
 	exporter.RegistConsul(m.clusterId, cfg.GetString("role"), cfg)
 	return
 }
@@ -356,6 +366,7 @@ func (m *MetaNode) register() (err error) {
 			step++
 		}
 		var nodeID uint64
+		// TODO 将metanode注册到master
 		if nodeID, err = masterClient.NodeAPI().AddMetaNode(nodeAddress, m.zoneName); err != nil {
 			log.LogErrorf("register: register to master fail: address(%v) err(%s)", nodeAddress, err)
 			time.Sleep(3 * time.Second)

@@ -76,12 +76,14 @@ func (m *MetaNode) serveConn(conn net.Conn, stopC chan uint8) {
 		default:
 		}
 		p := &Packet{}
+		// TODO 拆包
 		if err := p.ReadFromConn(conn, proto.NoReadDeadlineTime); err != nil {
 			if err != io.EOF {
 				log.LogError("serve MetaNode: ", err.Error())
 			}
 			return
 		}
+		// TODO 处理TCP包
 		if err := m.handlePacket(conn, p, remoteAddr); err != nil {
 			log.LogErrorf("serve handlePacket fail: %v", err)
 		}
