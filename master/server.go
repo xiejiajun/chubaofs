@@ -101,6 +101,7 @@ func (m *Server) Start(cfg *config.Config) (err error) {
 		return
 	}
 
+	// TODO 构建RocksDB实例, 用于持久化元数据
 	if m.rocksDBStore, err = raftstore.NewRocksDBStore(m.storeDir, LRUCacheSize, WriteBufferSize); err != nil {
 		return
 	}
