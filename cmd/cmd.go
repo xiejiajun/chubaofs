@@ -129,6 +129,7 @@ func main() {
 	 * LoadConfigFile should be checked before start daemon, since it will
 	 * call os.Exit() w/o notifying the parent process.
 	 */
+	// TODO 加载Server配置文件
 	cfg, err := config.LoadConfigFile(*configFile)
 	if err != nil {
 		daemonize.SignalOutcome(err)
@@ -136,6 +137,7 @@ func main() {
 	}
 
 	if !*configForeground {
+		// TODO 后台启动
 		if err := startDaemon(); err != nil {
 			fmt.Printf("Server start failed: %v\n", err)
 			os.Exit(1)
@@ -161,21 +163,27 @@ func main() {
 	)
 	switch role {
 	case RoleMeta:
+		// TODO 创建MetaNode
 		server = metanode.NewServer()
 		module = ModuleMeta
 	case RoleMaster:
+		// TODO 创建Master
 		server = master.NewServer()
 		module = ModuleMaster
 	case RoleData:
+		// TODO 创建DataNode
 		server = datanode.NewServer()
 		module = ModuleData
 	case RoleAuth:
+		// TODO 创建AuthNode
 		server = authnode.NewServer()
 		module = ModuleAuth
 	case RoleObject:
+		// TODO 创建ObjectNode
 		server = objectnode.NewServer()
 		module = ModuleObject
 	case RoleConsole:
+		// TODO 创建ConsoleServer
 		server = console.NewServer()
 		module = ModuleConsole
 	default:
@@ -244,6 +252,7 @@ func main() {
 	}
 
 	//for multi-cpu scheduling
+	// TODO 设置协程底层的线程数
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if err = ump.InitUmp(role, umpDatadir); err != nil {
 		log.LogFlush()
@@ -254,6 +263,7 @@ func main() {
 	}
 
 	if profPort != "" {
+		// TODO 启用prof
 		go func() {
 			http.HandleFunc(log.SetLogLevelPath, log.SetLogLevel)
 			e := http.ListenAndServe(fmt.Sprintf(":%v", profPort), nil)
@@ -267,7 +277,9 @@ func main() {
 		}()
 	}
 
+	// TODO 启动一个协程拦截信号, 对Server进行优雅停机
 	interceptSignal(server)
+	// TODO 启动Server
 	err = server.Start(cfg)
 	if err != nil {
 		log.LogFlush()
@@ -280,12 +292,14 @@ func main() {
 	daemonize.SignalOutcome(nil)
 
 	// Block main goroutine until server shutdown.
+	// TODO 通过WaitGroup等待server运行结束
 	server.Sync()
 	log.LogFlush()
 	os.Exit(0)
 }
 
 func startDaemon() error {
+	// TODO 获取当前可执行文件的绝对路径
 	cmdPath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("startDaemon failed: cannot get absolute command path, err(%v)", err)
@@ -304,6 +318,7 @@ func startDaemon() error {
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
 	}
 
+	// TODO 启动一个后台进程
 	err = daemonize.Run(cmdPath, args, env, os.Stdout)
 	if err != nil {
 		return fmt.Errorf("startDaemon failed: daemon start failed, cmd(%v) args(%v) env(%v) err(%v)\n", cmdPath, args, env, err)
