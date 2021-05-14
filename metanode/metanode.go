@@ -142,6 +142,7 @@ func doStart(s common.Server, cfg *config.Config) (err error) {
 
 	// TODO 创建暴露当前节点的角色为MetaNode的API供外部查看
 	exporter.Init(cfg.GetString("role"), cfg)
+	// TODO 启动分区指标收集服务
 	m.startStat()
 
 	// check local partition compare with master ,if lack,then not start
