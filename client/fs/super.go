@@ -96,8 +96,12 @@ func NewSuper(opt *proto.MountOptions) (s *Super, err error) {
 		s.enSyncWrite = true
 	}
 	s.keepCache = opt.KeepCache
+	// TODO iNode缓存
 	s.ic = NewInodeCache(inodeExpiration, MaxInodeCache)
 	s.orphan = NewOrphanInodeList()
+	// TODO Node Cache Client端缓存
+	//  客户端为了减少与资源管理节点的通信负担，会在挂载启动时获取该挂载卷中所有元数据和数据节点的地址，
+	//  并且进行缓存，后续会定期从资源管理节点进行更新。
 	s.nodeCache = make(map[uint64]fs.Node)
 	s.disableDcache = opt.DisableDcache
 	s.fsyncOnClose = opt.FsyncOnClose

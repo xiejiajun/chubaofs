@@ -98,6 +98,7 @@ func (f *File) Forget() {
 	f.super.ic.Delete(ino)
 
 	f.super.fslock.Lock()
+	// TODO 从缓存移除
 	delete(f.super.nodeCache, ino)
 	f.super.fslock.Unlock()
 

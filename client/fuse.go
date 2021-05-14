@@ -94,6 +94,7 @@ func main() {
 	}
 
 	if !*configForeground {
+		// TODO 作为后台进程启动
 		if err := startDaemon(); err != nil {
 			fmt.Printf("Mount failed: %v\n", err)
 			os.Exit(1)
@@ -106,6 +107,7 @@ func main() {
 	 * Must notify the parent process through SignalOutcome anyway.
 	 */
 
+	// TODO 解析配置
 	cfg, _ := config.LoadConfigFile(*configFile)
 	opt, err := parseMountOption(cfg)
 	if err != nil {
@@ -115,6 +117,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO 设置线程数
 	if opt.MaxCPUs > 0 {
 		runtime.GOMAXPROCS(int(opt.MaxCPUs))
 	} else {
@@ -152,6 +155,7 @@ func main() {
 	}
 	syslog.Println("*** End ***")
 
+	// TODO 文件大小读取限制设置
 	changeRlimit(defaultRlimit)
 
 	if err = sysutil.RedirectFD(int(outputFile.Fd()), int(os.Stderr.Fd())); err != nil {
@@ -161,8 +165,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO 监听系统信号，用于优雅退出
 	registerInterceptedSignal(opt.MountPoint)
 
+	// TODO 权限检查
 	if err = checkPermission(opt); err != nil {
 		err = errors.NewErrorf("check permission failed: %v", err)
 		syslog.Println(err)
@@ -171,6 +177,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO 挂载指定挂载点：重点1
 	fsConn, super, err := mount(opt)
 	if err != nil {
 		err = errors.NewErrorf("mount failed: %v", err)
@@ -183,9 +190,11 @@ func main() {
 	}
 	defer fsConn.Close()
 
+	// TODO 客户端注册到控制台
 	exporter.Init(ModuleName, cfg)
 	exporter.RegistConsul(super.ClusterName(), ModuleName, cfg)
 
+	// TODO 启动一个对外提供当前挂载掉访问接口的服务：重点2
 	if err = fs.Serve(fsConn, super); err != nil {
 		log.LogFlush()
 		syslog.Printf("fs Serve returns err(%v)", err)
@@ -232,6 +241,7 @@ func startDaemon() error {
 	// add GODEBUG=madvdontneed=1 environ, to make sysUnused uses madvise(MADV_DONTNEED) to signal the kernel that a
 	// range of allocated memory contains unneeded data.
 	env = append(env, "GODEBUG=madvdontneed=1")
+	// TODO 启动后台进程
 	err = daemonize.Run(cmdPath, args, env, os.Stdout)
 	if err != nil {
 		return fmt.Errorf("startDaemon failed: daemon start failed, cmd(%v) args(%v) env(%v) err(%v)\n", cmdPath, args, env, err)
@@ -241,12 +251,14 @@ func startDaemon() error {
 }
 
 func mount(opt *proto.MountOptions) (fsConn *fuse.Conn, super *cfs.Super, err error) {
+	// TODO 里面会对inode等信息进行本地缓存，以减少与资源管理节点的通信负担
 	super, err = cfs.NewSuper(opt)
 	if err != nil {
 		log.LogError(errors.Stack(err))
 		return
 	}
 
+	// TODO 代理API，流量转发到Master Server
 	http.HandleFunc(ControlCommandSetRate, super.SetRate)
 	http.HandleFunc(ControlCommandGetRate, super.GetRate)
 	http.HandleFunc(log.SetLogLevelPath, log.SetLogLevel)
@@ -254,6 +266,7 @@ func mount(opt *proto.MountOptions) (fsConn *fuse.Conn, super *cfs.Super, err er
 	http.HandleFunc(log.GetLogPath, log.GetLog)
 
 	go func() {
+		// TODO 启用pprof
 		if opt.Profport != "" {
 			syslog.Println("Start pprof with port:", opt.Profport)
 			http.ListenAndServe(":"+opt.Profport, nil)
@@ -294,6 +307,7 @@ func mount(opt *proto.MountOptions) (fsConn *fuse.Conn, super *cfs.Super, err er
 		options = append(options, fuse.PosixACL())
 	}
 
+	// TODO 挂载ChubaoFs的路径
 	fsConn, err = fuse.Mount(opt.MountPoint, options...)
 	return
 }
